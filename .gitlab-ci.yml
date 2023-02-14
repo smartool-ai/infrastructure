@@ -1,4 +1,4 @@
-iamge: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
 
 deploy_nonprod:
   stage: deploy_nonprod
