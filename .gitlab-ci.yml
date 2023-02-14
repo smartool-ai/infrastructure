@@ -1,0 +1,17 @@
+iamge: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
+
+deploy_nonprod:
+  stage: deploy_nonprod
+  only:
+    - developemt
+  script:
+    - ./scripts/deploy_nonprod.sh
+
+deploy_prod:
+  stage: deploy_prod
+  only:
+    - production
+  when:
+    - manual
+  script:
+    - ./scripts/deploy_prod.sh
