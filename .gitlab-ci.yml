@@ -1,14 +1,18 @@
 image: registry.gitlab.com/gitlab-org/cloud-deploy/aws-base:latest
 
+stages:
+  - deploy_nonprod
+  - deploy_prod
+
 deploy_nonprod:
-  stage: deploy
+  stage: deploy_nonprod
   only:
     - developemt
   script:
     - ./scripts/deploy_nonprod.sh
 
 deploy_prod:
-  stage: deploy
+  stage: deploy_prod
   only:
     - production
   when: manual
