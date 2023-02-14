@@ -9,6 +9,7 @@ deploy_nonprod:
   only:
     - development
   script:
+    - chmod +x scripts/deploy_nonprod.sh
     - ./scripts/deploy_nonprod.sh
 
 deploy_prod:
@@ -17,4 +18,5 @@ deploy_prod:
     - production
   when: manual
   script:
+    - chmod +x scripts/deploy_prod.sh
     - ./scripts/deploy_prod.sh
