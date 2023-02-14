@@ -7,7 +7,7 @@ stages:
 deploy_nonprod:
   stage: deploy_nonprod
   only:
-    - developemt
+    - development
   script:
     - ./scripts/deploy_nonprod.sh
 
