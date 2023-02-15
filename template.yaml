@@ -62,7 +62,9 @@ Resources:
     Type: AWS::Route53::HostedZone
     Properties:
       VPCs:
-        - !Ref VPC
+        - 
+          VPCId: !Ref VPC
+          VPCRegion: !FindInMap [ "EnvMappings", !Ref StageName, REGION ]
       Name: JKBXHostedZone
 
   VPC:
