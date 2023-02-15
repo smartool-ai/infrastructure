@@ -59,6 +59,7 @@ Mappings:
 
 Resources:
   JKBXHostedZone:
+    Type: AWS::Route53::HostedZone
     Properties:
       VPCs:
         - !Ref VPC
