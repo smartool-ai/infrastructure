@@ -58,14 +58,14 @@ Mappings:
       AZs: [ "a", "b" ]
 
 Resources:
-  JKBXHostedZone:
-    Type: AWS::Route53::HostedZone
-    Properties:
-      VPCs:
-        - 
-          VPCId: !Ref VPC
-          VPCRegion: !FindInMap [ "EnvMappings", !Ref StageName, REGION ]
-      Name: JKBXHostedZone
+  # JKBXHostedZone:
+  #   Type: AWS::Route53::HostedZone
+  #   Properties:
+  #     VPCs:
+  #       - 
+  #         VPCId: !Ref VPC
+  #         VPCRegion: !FindInMap [ "EnvMappings", !Ref StageName, REGION ]
+  #     Name: JKBXHostedZone
 
   VPC:
     Type: AWS::EC2::VPC
