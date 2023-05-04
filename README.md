@@ -80,37 +80,20 @@ Once you have access to AWS, you will want to export AWS environment variables t
 
 Once done you will follow these steps to make a deployment:
 
-- 1. Login to AWS ecr:
+- 1. Ensure required environment variables are set, current required variables:
+**DO NOT SET TO PROD**
+No one has access to write to production, but this shouldn't be done nonetheless
 ```bash
-make aws-login
+STAGE_NAME=nonprod
 ```
 
-- 2. Build docker image:
+- 2. Run deployment command:
 ```bash
-make build-docker
+make sam-deploy
 ```
+**Note: Be aware when deploying to your AWS account that when you delete the stack, sometimes deletion
+of the VPC isn't successful and you may have to manually delete from the console.
 
-- 3. In AWS console navigate to ECR and create a new repository named: backstage. You can follow the instructions [here](https://docs.aws.amazon.com/AmazonECR/latest/userguide/repository-create.html)
-
-- 4. Deploy to ECR registry:
-```bash
-make deploy-docker
-```
-
-- 5. Now build AWS locally
-```bash
-make build
-```
-
-- 6. Make sure the required environment variables are set correctly. Currently these are the requred environment variables:
-```bash
-DATABASE_URI=xxx
-JKBX_CONFIGURATION=testing
-```
-
-- 7. Deploy to AWS
-```bash
-make sam-deploy-dev
 ```
 
 ## Architecture
