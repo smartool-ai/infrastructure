@@ -331,3 +331,50 @@ Resources:
     Properties:
       SubnetId: !Ref PrivateSubnet1
       RouteTableId: !Ref PrivateRouteTable1
+
+
+# RDS and Related Resources
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "RDS Security Group"
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: Tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 10.0.0.0/0
+
+
+  RDSSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: "RDS Subnet group"
+      SubnetIds:
+        - !Ref PrivateSubnet0
+        - !Ref PrivateSubnet1
+
+  DatabaseCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      DatabaseName: Tron
+      MasterUsername: postgres
+      MasterUserPassword: postgres
+      Engine: aurora-postgresql
+      Port: 5432
+      DBSubnetGroupName: !Ref RDSSubnetGroup
+      VpcSecurityGroupIds:
+        - !GetAtt RDSSecurityGroup.GroupId
+
+  AuroraDBFirstInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      Engine: aurora-postgresql
+      DBClusterIdentifier: !Ref DatabaseCluster
+      DBInstanceClass: db.t4g.medium
+      DBSubnetGroupName: !Ref RDSSubnetGroup
+      PubliclyAccessible: False
+
+  
+
+  
