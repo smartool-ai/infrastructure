@@ -334,54 +334,52 @@ Resources:
 
 
 # RDS and Related Resources
-  # RDSSecurityGroup:
-  #   Type: AWS::EC2::SecurityGroup
-  #   Properties:
-  #     GroupDescription: "RDS Security Group"
-  #     VpcId: !Ref VPC
-  #     SecurityGroupIngress:
-  #       - IpProtocol: Tcp
-  #         FromPort: 5432
-  #         ToPort: 5432
-  #         CidrIp: 10.0.0.0/0
+  RDSSecurityGroup:
+    Type: AWS::EC2::SecurityGroup
+    Properties:
+      GroupDescription: "RDS Security Group"
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: Tcp
+          FromPort: 5432
+          ToPort: 5432
+          CidrIp: 10.0.0.0/0
 
 
-  # RDSSubnetGroup:
-  #   Type: AWS::RDS::DBSubnetGroup
-  #   Properties:
-  #     DBSubnetGroupDescription: "RDS Subnet group"
-  #     SubnetIds:
-  #       - !Ref PrivateSubnet0
-  #       - !Ref PrivateSubnet1
+  RDSSubnetGroup:
+    Type: AWS::RDS::DBSubnetGroup
+    Properties:
+      DBSubnetGroupDescription: "RDS Subnet group"
+      SubnetIds:
+        - !Ref PrivateSubnet0
+        - !Ref PrivateSubnet1
 
-  # DatabaseCluster:
-  #   Type: AWS::RDS::DBCluster
-  #   Properties:
-  #     DatabaseName: Tron
-  #     MasterUsername: postgres
-  #     MasterUserPassword: postgres
-  #     Engine: aurora-postgresql
-  #     Port: 5432
-  #     DBSubnetGroupName: !Ref RDSSubnetGroup
-  #     VpcSecurityGroupIds:
-  #       - !GetAtt RDSSecurityGroup.GroupId
+  DatabaseCluster:
+    Type: AWS::RDS::DBCluster
+    Properties:
+      DatabaseName: Tron
+      MasterUsername: postgres
+      MasterUserPassword: postgres
+      Engine: aurora-postgresql
+      Port: 5432
+      DBSubnetGroupName: !Ref RDSSubnetGroup
+      VpcSecurityGroupIds:
+        - !GetAtt RDSSecurityGroup.GroupId
 
-  # AuroraDBFirstInstance:
-  #   Type: AWS::RDS::DBInstance
-  #   Properties:
-  #     Engine: aurora-postgresql
-  #     DBClusterIdentifier: !Ref DatabaseCluster
-  #     DBInstanceClass: db.t4g.medium
-  #     DBSubnetGroupName: !Ref RDSSubnetGroup
-  #     PubliclyAccessible: False
-
-  
-
+  AuroraDBFirstInstance:
+    Type: AWS::RDS::DBInstance
+    Properties:
+      Engine: aurora-postgresql
+      DBClusterIdentifier: !Ref DatabaseCluster
+      DBInstanceClass: db.t4g.medium
+      DBSubnetGroupName: !Ref RDSSubnetGroup
+      PubliclyAccessible: False
+    
   # Dynamo UserManagement Table
   UserManagementTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: "jkbx_UserManagement"
+      TableName: "UserManagement"
       TableClass: STANDARD
       DeletionProtectionEnabled: True
       AttributeDefinitions:
@@ -407,12 +405,73 @@ Resources:
           #   ReadCapacityUnits: 5
           #   WriteCapacityUnits: 5
       BillingMode: PAY_PER_REQUEST
+    
+  UserMetadataTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "UserMetadata"
+      TableClass: STANDARD
+      DeletionProtectionEnabled: True
+      AttributeDefinitions:
+        -
+          AttributeName: "email"
+          AttributeType: S
+      KeySchema:
+        - 
+          AttributeName: "email"
+          KeyType: "HASH"
+      BillingMode: PAY_PER_REQUEST
+
   # IAM Role for DynamoDB
-  # UserManagementTableIAMRole:
-  #   Type: AWS::IAM::Role
+  UserMetadataTableIAMRole:
+    Type: AWS::IAM::Role
+    Properties:
+      RoleName: UserMetadataTableRole
+      AssumeRolePolicyDocument:
+        Version: "2012-10-17"
+        Statement:
+          - Effect: Allow
+            Principal:
+              Service:
+                - lambda.amazonaws.com
+            Action:
+              - 'sts:AssumeRole'
+      Policies:
+        - PolicyName: UserMetadataTablePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "dynamodb:BatchGetItem"
+                  - "dynamodb:GetItem"
+                  - "dynamodb:PutItem"
+                  - "dynamodb:UpdateItem"
+                  - "dynamodb:DeleteItem"
+                  - "dynamodb:DescribeTable"
+                  - "dynamodb:Query"
+                Resource: !GetAtt UserMetadataTable.Arn
+        - PolicyName: UserManagementTablePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "dynamodb:GetItem"
+                  - "dynamodb:DescribeTable"
+                  - "dynamodb:Query"
+                Resource:
+                  - !GetAtt UserManagementTable.Arn
+                  - !Join [ "/index/", [ !GetAtt UserManagementTable.Arn, "email-index"]]
+                
+        
+
+  # IAM Policy
+  # UserManagementTableIAMPolicy:
+  #   Type: AWS::IAM::Policy
   #   Properties:
-  #     RoleName: UserManagementTableRole
-  #     AssumeRolePolicyDocument:
+  #     PolicyName: UserManagementTablePolicy
+  #     PolicyDocument:
   #       Version: "2012-10-17"
   #       Statement:
   #         - Effect: Allow
@@ -422,44 +481,25 @@ Resources:
   #           Action:
   #             - 'sts:AssumeRole'
   #     Policies:
-  #       - PolicyName: DynamoDBAccessPolicy
+  #       - PolicyName: UserMetadataTablePolicy
   #         PolicyDocument:
   #           Version: "2012-10-17"
   #           Statement:
   #             - Effect: Allow
   #               Action:
-  #                 # - "dynamodb:BatchGetItem"
+  #                 - "dynamodb:BatchGetItem"
   #                 - "dynamodb:GetItem"
   #                 - "dynamodb:PutItem"
   #                 - "dynamodb:UpdateItem"
   #                 - "dynamodb:DeleteItem"
-  #               Resource: !GetAtt UserManagementTable.Arn
+  #                 - "dynamodb:DescribeTable"
+  #               Resource: !GetAtt UserMetadataTable.Arn
+  #     Users:
+  #       - !Ref Auth0IAMUser
 
-
-  # IAM Policy
-  UserManagementTableIAMPolicy:
-    Type: AWS::IAM::Policy
-    Properties:
-      PolicyName: UserManagementTablePolicy
-      PolicyDocument:
-        Version: "2012-10-17"
-        Statement:
-          - Effect: Allow
-            Action:
-              - "dynamodb:GetItem"
-              - "dynamodb:Query"
-              - "dynamodb:PutItem"
-              - "dynamodb:UpdateItem"
-              - "dynamodb:DeleteItem"
-            Resource: 
-            - !GetAtt UserManagementTable.Arn
-            # ^^^ Access to DynamoTable will initially be manual and later through this template once we figure it out
-      Users:
-        - !Ref Auth0IAMUser
-
-  # IAM user for programmatic access to DynamoDB
-  Auth0IAMUser:
-    Type: AWS::IAM::User
+  # # IAM user for programmatic access to DynamoDB
+  # Auth0IAMUser:
+  #   Type: AWS::IAM::User
   
   # Auth0IAMAccessKey:
   #   Type: AWS::IAM::AccessKey
