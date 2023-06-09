@@ -16,6 +16,9 @@ Parameters:
     AllowedValues:
       - nonprod
       - prod
+      - dev
+      - staging
+      - local
 
 Mappings:
   EnvMappings:
@@ -530,38 +533,9 @@ Resources:
                 
         
 
-  # IAM Policy
-  # UserManagementTableIAMPolicy:
-  #   Type: AWS::IAM::Policy
-  #   Properties:
-  #     PolicyName: UserManagementTablePolicy
-  #     PolicyDocument:
-  #       Version: "2012-10-17"
-  #       Statement:
-  #         - Effect: Allow
-  #           Principal:
-  #             Service:
-  #               - lambda.amazonaws.com
-  #           Action:
-  #             - 'sts:AssumeRole'
-  #     Policies:
-  #       - PolicyName: UserMetadataTablePolicy
-  #         PolicyDocument:
-  #           Version: "2012-10-17"
-  #           Statement:
-  #             - Effect: Allow
-  #               Action:
-  #                 - "dynamodb:BatchGetItem"
-  #                 - "dynamodb:GetItem"
-  #                 - "dynamodb:PutItem"
-  #                 - "dynamodb:UpdateItem"
-  #                 - "dynamodb:DeleteItem"
-  #                 - "dynamodb:DescribeTable"
-  #               Resource: !GetAtt UserMetadataTable.Arn
-  #     Users:
-  #       - !Ref Auth0IAMUser
 
-  # # IAM user for programmatic access to DynamoDB
+
+  # IAM user for programmatic access to DynamoDB
   # Auth0IAMUser:
   #   Type: AWS::IAM::User
   
@@ -570,3 +544,64 @@ Resources:
   #   Properties:
   #     UserName: !Ref Auth0IAMUser
   # IAM access key and secret access key will initially be manual , later refactored through this template
+
+
+# WAF/Web ACL
+  StudioWAF:
+    Type: AWS::WAFv2::WebACL
+    Properties:
+      DefaultAction:
+        Allow: {}
+      Name: !Sub "${StageName}-Studio-WAF"
+      Scope: REGIONAL
+      VisibilityConfig:
+        CloudWatchMetricsEnabled: true
+        MetricName: "studio"
+        SampledRequestsEnabled: true
+      Rules:
+        - Name: AWSCommonManagedRules
+          Priority: 0
+          OverrideAction:
+            Count: {}
+          VisibilityConfig:
+            CloudWatchMetricsEnabled: true
+            MetricName: CommonAWSRulesMetric
+            SampledRequestsEnabled: true
+          Statement:
+            ManagedRuleGroupStatement:
+              Name: AWSManagedRulesCommonRuleSet
+              VendorName: AWS
+              ExcludedRules: []
+
+
+
+# Route53 hosted zone
+
+  ApiHostedZone:
+    Type: "AWS::Route53::HostedZone"
+    Properties:
+      HostedZoneConfig:
+        Comment: 'Hosted Zone'
+      Name: !Sub "${StageName}-api.jkbx.com"
+      # VPCs:
+      #   -
+      #     VPCId: !Ref VPC
+      #     VPCRegion: 'us-west-2'
+
+# # DNS Entry
+  # ApiDnsRecord:
+  #   Type: AWS::Route53::RecordSet
+  #   Properties:
+  #     HostedZoneId: !Ref ApiHostedZone
+  #     Name: !Sub "${StageName}-api.jkbx.com"
+  #     ResourceRecords:
+  #     - 192.168.0.1
+  #     TTL: 900
+  #     Type: A
+
+# cert
+  ApiCertificate: 
+    Type: "AWS::CertificateManager::Certificate"
+    Properties: 
+      DomainName: !Sub "${StageName}-api.jkbx.com"
+      ValidationMethod: DNS
