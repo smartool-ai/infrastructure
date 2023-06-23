@@ -137,3 +137,4 @@ packaged.yaml
 .tool-versions
 
 *.vscode/*
+.aws-sam*

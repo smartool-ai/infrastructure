@@ -84,13 +84,15 @@ Once done you will follow these steps to make a deployment:
 **DO NOT SET TO PROD**
 No one has access to write to production, but this shouldn't be done nonetheless
 ```bash
-STAGE_NAME=nonprod
+STAGE_NAME=local
 ```
 
 - 2. Run deployment command:
 ```bash
 make sam-deploy
 ```
+**Note: If this is the initial deployment of studio on an AWS account then it will get stuck on CertificateManager creation as this creation will not move to COMPLETED state until the certificate is verified. Certificate manager generates a CNAME record that you will have to go into the console and click a button that automatically adds it to the HostedZone. Also, since this stack is actually creating a subdomain on your AWS account you will have to manually copy the NS record values that were created in the HostedZone and create a new NS record in Zone Management accounts only HostZone. This connects the subdomain to the base domain and allows the certificate to be verified.
+
 **Note: Be aware when deploying to your AWS account that when you delete the stack, sometimes deletion
 of the VPC isn't successful and you may have to manually delete from the console.
 

@@ -61,15 +61,6 @@ Mappings:
       AZs: [ "a", "b" ]
 
 Resources:
-  # JKBXHostedZone:
-  #   Type: AWS::Route53::HostedZone
-  #   Properties:
-  #     VPCs:
-  #       - 
-  #         VPCId: !Ref VPC
-  #         VPCRegion: !FindInMap [ "EnvMappings", !Ref StageName, REGION ]
-  #     Name: JKBXHostedZone
-
   VPC:
     Type: AWS::EC2::VPC
     DeletionPolicy: Retain
@@ -429,15 +420,12 @@ Resources:
   OrderTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: "Orders"
+      TableName: "OrdersTable"
       TableClass: STANDARD
       DeletionProtectionEnabled: True
       AttributeDefinitions:
         -
           AttributeName: "email"
-          AttributeType: S
-        -
-          AttributeName: "order_type"
           AttributeType: S
         -
           AttributeName: "order_id"
@@ -447,15 +435,25 @@ Resources:
           AttributeName: "email"
           KeyType: "HASH"
         -
-          AttributeName: "order_type"
+          AttributeName: "order_id"
           KeyType: "RANGE"
-      GlobalSecondaryIndexes:
-        - IndexName: "order-id-index"
-          KeySchema: 
-            - AttributeName: "order_id" 
-              KeyType: "HASH"
-          Projection:
-            ProjectionType: ALL
+      BillingMode: PAY_PER_REQUEST
+  
+  # Dynamo Track metadata table
+  TrackMetadataTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "TrackMetadataTable"
+      TableClass: STANDARD
+      DeletionProtectionEnabled: True
+      AttributeDefinitions:
+        -
+          AttributeName: "song_id"
+          AttributeType: S
+      KeySchema:
+        -
+          AttributeName: "song_id"
+          KeyType: "HASH"
       BillingMode: PAY_PER_REQUEST
 
   # IAM Role for DynamoDB
@@ -512,9 +510,25 @@ Resources:
                   - "dynamodb:DeleteItem"
                   - "dynamodb:DescribeTable"
                   - "dynamodb:Query"
+                  - "dynamodb:Scan"
                 Resource:
                   - !GetAtt OrderTable.Arn
-                  - !Join [ "/index/", [ !GetAtt OrderTable.Arn, "order-id-index"]]
+        - PolicyName: TrackMetadataTablePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "dynamodb:BatchGetItem"
+                  - "dynamodb:GetItem"
+                  - "dynamodb:PutItem"
+                  - "dynamodb:UpdateItem"
+                  - "dynamodb:DeleteItem"
+                  - "dynamodb:DescribeTable"
+                  - "dynamodb:Query"
+                  - "dynamodb:Scan"
+                Resource:
+                  - !GetAtt TrackMetadataTable.Arn
         - PolicyName: LambdaExecutionPolicy
           PolicyDocument:
             Version: "2012-10-17"
@@ -529,6 +543,7 @@ Resources:
                   - "logs:CreateLogGroup"
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
+                  - "sns:Publish"
                 Resource: "*"
                 
         
@@ -572,8 +587,6 @@ Resources:
               Name: AWSManagedRulesCommonRuleSet
               VendorName: AWS
               ExcludedRules: []
-
-
 
 # Route53 hosted zone
 
