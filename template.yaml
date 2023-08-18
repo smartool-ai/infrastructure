@@ -508,6 +508,12 @@ Resources:
         -
           AttributeName: "asset_id"
           AttributeType: S
+        -
+          AttributeName: "market_cap"
+          AttributeType: N
+        -
+          AttributeName: "streaming_count"
+          AttributeType: N
       KeySchema:
         -
           AttributeName: "song_id"
@@ -515,6 +521,27 @@ Resources:
         -
           AttributeName: "asset_id"
           KeyType: "RANGE"
+
+      GlobalSecondaryIndexes:
+        - IndexName: "market-cap-index"
+          KeySchema:
+            - AttributeName: "market_cap" 
+              KeyType: "HASH"
+          Projection:
+            ProjectionType: ALL
+        - IndexName: "streaming-count-index"
+          KeySchema: 
+            - AttributeName: "streaming_count" 
+              KeyType: "HASH"
+          Projection:
+            ProjectionType: ALL
+        - IndexName: "asset-id-index"
+          KeySchema: 
+            - AttributeName: "asset_id" 
+              KeyType: "HASH"
+          Projection:
+            ProjectionType: ALL
+
       BillingMode: PAY_PER_REQUEST
 
   # IAM Role for DynamoDB
@@ -638,6 +665,9 @@ Resources:
                   - "dynamodb:Scan"
                 Resource:
                   - !GetAtt AssetTable.Arn
+                  - !Join [ "/index/", [ !GetAtt AssetTable.Arn, "market-cap-index"]]
+                  - !Join [ "/index/", [ !GetAtt AssetTable.Arn, "streaming-count-index"]]
+                  - !Join [ "/index/", [ !GetAtt AssetTable.Arn, "asset-id-index"]]
         - PolicyName: LambdaExecutionPolicy
           PolicyDocument:
             Version: "2012-10-17"
@@ -654,9 +684,6 @@ Resources:
                   - "logs:PutLogEvents"
                   - "sns:Publish"
                 Resource: "*"
-                
-        
-
 
 
   # IAM user for programmatic access to DynamoDB
