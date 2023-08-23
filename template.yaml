@@ -514,6 +514,9 @@ Resources:
         -
           AttributeName: "streaming_count"
           AttributeType: N
+        -
+          AttributeName: "spv_name"
+          AttributeType: S
       KeySchema:
         -
           AttributeName: "song_id"
@@ -525,14 +528,18 @@ Resources:
       GlobalSecondaryIndexes:
         - IndexName: "market-cap-index"
           KeySchema:
-            - AttributeName: "market_cap" 
+            - AttributeName: "spv_name" 
               KeyType: "HASH"
+            - AttributeName: "market_cap" 
+              KeyType: "RANGE"
           Projection:
             ProjectionType: ALL
         - IndexName: "streaming-count-index"
           KeySchema: 
-            - AttributeName: "streaming_count" 
+            - AttributeName: "spv_name" 
               KeyType: "HASH"
+            - AttributeName: "streaming_count" 
+              KeyType: "RANGE"
           Projection:
             ProjectionType: ALL
         - IndexName: "asset-id-index"
