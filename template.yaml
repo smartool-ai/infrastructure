@@ -339,7 +339,6 @@ Resources:
           ToPort: 5432
           CidrIp: 10.0.0.0/0
 
-
   RDSSubnetGroup:
     Type: AWS::RDS::DBSubnetGroup
     Properties:
@@ -430,6 +429,9 @@ Resources:
         -
           AttributeName: "order_id"
           AttributeType: S
+        -
+          AttributeName: "created_datetime"
+          AttributeType: S
       KeySchema:
         -
           AttributeName: "email"
@@ -437,6 +439,17 @@ Resources:
         -
           AttributeName: "order_id"
           KeyType: "RANGE"
+      
+      GlobalSecondaryIndexes:
+        - IndexName: "created_datetime-index"
+          KeySchema:
+            - AttributeName: "email" 
+              KeyType: "HASH"
+            - AttributeName: "created_datetime" 
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: ALL
+            
       BillingMode: PAY_PER_REQUEST
   
   # Dynamo Track metadata table
@@ -690,8 +703,39 @@ Resources:
                   - "logs:CreateLogStream"
                   - "logs:PutLogEvents"
                   - "sns:Publish"
+                  - "lambda:InvokeFunction"
                 Resource: "*"
 
+  # Caching layer
+  ElasticacheSubnetGroup:
+    Type: AWS::ElastiCache::SubnetGroup
+    Properties:
+      Description: "Elasticache Subnet Group"
+      SubnetIds:
+        - !Ref PrivateSubnet0
+        - !Ref PrivateSubnet1
+  ElasticacheSecurityGroup:
+    Type: 'AWS::EC2::SecurityGroup'
+    Properties:
+      GroupDescription: Elasticache Security Group
+      VpcId: !Ref VPC
+      SecurityGroupIngress:
+        - IpProtocol: tcp
+          FromPort: 6379
+          ToPort: 6379
+          CidrIp: 10.0.0.0/0
+  ElasticacheCluster:
+    Type: 'AWS::ElastiCache::CacheCluster'
+    Properties:    
+      Engine: redis
+      CacheNodeType: cache.t2.micro
+      CacheSubnetGroupName: !Ref ElasticacheSubnetGroup
+      NumCacheNodes: 1
+      Port: 6379
+      VpcSecurityGroupIds:
+        - !GetAtt 
+          - ElasticacheSecurityGroup
+          - GroupId
 
   # IAM user for programmatic access to DynamoDB
   # Auth0IAMUser:
@@ -743,6 +787,13 @@ Resources:
       #   -
       #     VPCId: !Ref VPC
       #     VPCRegion: 'us-west-2'
+      
+  RiderApiHostedZone:
+    Type: "AWS::Route53::HostedZone"
+    Properties:
+      HostedZoneConfig:
+        Comment: 'Hosted Zone'
+      Name: !Sub "${StageName}-rider.jkbx.com"
 
 # # DNS Entry
   # ApiDnsRecord:
@@ -760,4 +811,10 @@ Resources:
     Type: "AWS::CertificateManager::Certificate"
     Properties: 
       DomainName: !Sub "${StageName}-api.jkbx.com"
+      ValidationMethod: DNS
+  
+  RiderApiCertificate: 
+    Type: "AWS::CertificateManager::Certificate"
+    Properties: 
+      DomainName: !Sub "${StageName}-rider.jkbx.com"
       ValidationMethod: DNS
