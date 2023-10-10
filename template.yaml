@@ -704,6 +704,7 @@ Resources:
                   - "logs:PutLogEvents"
                   - "sns:Publish"
                   - "lambda:InvokeFunction"
+                  - "states:StartExecution"
                 Resource: "*"
 
   # Caching layer
