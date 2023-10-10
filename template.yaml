@@ -441,7 +441,7 @@ Resources:
           KeyType: "RANGE"
       
       GlobalSecondaryIndexes:
-        - IndexName: "created_datetime-index"
+        - IndexName: "created-datetime-index"
           KeySchema:
             - AttributeName: "email" 
               KeyType: "HASH"
@@ -621,6 +621,7 @@ Resources:
                   - "dynamodb:Scan"
                 Resource:
                   - !GetAtt OrderTable.Arn
+                  - !Join [ "/index/", [ !GetAtt OrderTable.Arn, "created-datetime-index"]]
         - PolicyName: TrackMetadataTablePolicy
           PolicyDocument:
             Version: "2012-10-17"
