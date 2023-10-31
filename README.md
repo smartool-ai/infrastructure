@@ -84,7 +84,9 @@ Once done you will follow these steps to make a deployment:
 **DO NOT SET TO PROD**
 No one has access to write to production, but this shouldn't be done nonetheless
 ```bash
-STAGE_NAME=local
+set -a
+export STAGE_NAME=local
+set +a
 ```
 
 - 2. Run deployment command:
