@@ -735,6 +735,15 @@ Resources:
                   - "sns:Publish"
                   - "lambda:InvokeFunction"
                   - "states:StartExecution"
+                  - "s3:PutObject"
+                Resource: "*"
+        - PolicyName: KmsPolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "kms:*"
                 Resource: "*"
 
   # Caching layer
