@@ -602,6 +602,48 @@ Resources:
             ProjectionType: ALL
       BillingMode: PAY_PER_REQUEST
 
+  TransfersTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "TransfersTable"
+      TableClass: STANDARD
+      DeletionProtectionEnabled: True
+      AttributeDefinitions:
+        -
+          AttributeName: "user_id"
+          AttributeType: S
+        -
+          AttributeName: "transfer_id"
+          AttributeType: S
+        -
+          AttributeName: "created_datetime"
+          AttributeType: S
+      KeySchema:
+        -
+          AttributeName: "user_id"
+          KeyType: "HASH"
+        -
+          AttributeName: "transfer_id"
+          KeyType: "RANGE"
+      
+      GlobalSecondaryIndexes:
+        - IndexName: "created-datetime-index"
+          KeySchema:
+            - AttributeName: "user_id"
+              KeyType: "HASH"
+            - AttributeName: "created_datetime"
+              KeyType: "RANGE"
+          Projection:
+            ProjectionType: ALL
+        - IndexName: "transfer-id-index"
+          KeySchema:
+            - AttributeName: "transfer_id"
+              KeyType: "HASH"
+          Projection:
+            ProjectionType: ALL
+
+      BillingMode: PAY_PER_REQUEST
+
   # IAM Role for DynamoDB
   DynamoDatabasesAccessIAMRole:
     Type: AWS::IAM::Role
@@ -640,6 +682,7 @@ Resources:
                   - "dynamodb:GetItem"
                   - "dynamodb:DescribeTable"
                   - "dynamodb:Query"
+                  - "dynamodb:PutItem"
                 Resource:
                   - !GetAtt UserManagementTable.Arn
                   - !Join [ "/index/", [ !GetAtt UserManagementTable.Arn, "email-index"]]
@@ -744,6 +787,24 @@ Resources:
                 Resource:
                   - !GetAtt PortfolioTable.Arn
                   - !Join [ "/index/", [ !GetAtt PortfolioTable.Arn, "asset-id-index"]]
+        - PolicyName: TransfersTable
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "dynamodb:BatchGetItem"
+                  - "dynamodb:GetItem"
+                  - "dynamodb:PutItem"
+                  - "dynamodb:UpdateItem"
+                  - "dynamodb:DeleteItem"
+                  - "dynamodb:DescribeTable"
+                  - "dynamodb:Query"
+                  - "dynamodb:Scan"
+                Resource:
+                  - !GetAtt TransfersTable.Arn
+                  - !Join [ "/index/", [ !GetAtt TransfersTable.Arn, "created-datetime-index"]]
+                  - !Join [ "/index/", [ !GetAtt TransfersTable.Arn, "transfer-id-index"]]
         - PolicyName: LambdaExecutionPolicy
           PolicyDocument:
             Version: "2012-10-17"
