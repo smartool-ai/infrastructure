@@ -530,6 +530,9 @@ Resources:
         -
           AttributeName: "spv_name"
           AttributeType: S
+        -
+          AttributeName: "brassica_security_id"
+          AttributeType: S
       KeySchema:
         -
           AttributeName: "song_id"
@@ -541,23 +544,29 @@ Resources:
       GlobalSecondaryIndexes:
         - IndexName: "market-cap-index"
           KeySchema:
-            - AttributeName: "spv_name" 
+            - AttributeName: "spv_name"
               KeyType: "HASH"
-            - AttributeName: "market_cap" 
+            - AttributeName: "market_cap"
               KeyType: "RANGE"
           Projection:
             ProjectionType: ALL
         - IndexName: "streaming-count-index"
-          KeySchema: 
-            - AttributeName: "spv_name" 
+          KeySchema:
+            - AttributeName: "spv_name"
               KeyType: "HASH"
-            - AttributeName: "streaming_count" 
+            - AttributeName: "streaming_count"
               KeyType: "RANGE"
           Projection:
             ProjectionType: ALL
         - IndexName: "asset-id-index"
-          KeySchema: 
-            - AttributeName: "asset_id" 
+          KeySchema:
+            - AttributeName: "asset_id"
+              KeyType: "HASH"
+          Projection:
+            ProjectionType: ALL
+        - IndexName: "brassica-security-id-index"
+          KeySchema:
+            - AttributeName: "brassica_security_id"
               KeyType: "HASH"
           Projection:
             ProjectionType: ALL
@@ -718,6 +727,23 @@ Resources:
                   - !Join [ "/index/", [ !GetAtt AssetTable.Arn, "market-cap-index"]]
                   - !Join [ "/index/", [ !GetAtt AssetTable.Arn, "streaming-count-index"]]
                   - !Join [ "/index/", [ !GetAtt AssetTable.Arn, "asset-id-index"]]
+        - PolicyName: PortfolioTablePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "dynamodb:BatchGetItem"
+                  - "dynamodb:GetItem"
+                  - "dynamodb:PutItem"
+                  - "dynamodb:UpdateItem"
+                  - "dynamodb:DeleteItem"
+                  - "dynamodb:DescribeTable"
+                  - "dynamodb:Query"
+                  - "dynamodb:Scan"
+                Resource:
+                  - !GetAtt PortfolioTable.Arn
+                  - !Join [ "/index/", [ !GetAtt PortfolioTable.Arn, "asset-id-index"]]
         - PolicyName: LambdaExecutionPolicy
           PolicyDocument:
             Version: "2012-10-17"
