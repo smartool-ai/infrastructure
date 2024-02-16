@@ -1,11 +1,11 @@
 AWSTemplateFormatVersion: '2010-09-09'
 Transform: AWS::Serverless-2016-10-31
 Description: >
-  JKBX Infrastructure Layer
+  Transcriber Infrastructure Layer
 Metadata:
   AWS::ServerlessRepo::Application:
-    Name: jkbx-infrastructure-layer
-    Description: JKBX Infrastructure Layer
+    Name: transcriber-infrastructure-layer
+    Description: Transcriber Infrastructure Layer
     Author: jakep
     SemanticVersion: 0.1.0
 
@@ -70,7 +70,7 @@ Resources:
       CidrBlock: "10.0.0.0/16"
       Tags:
         - Key: Name
-          Value: !Sub "JKBX-VPC-${StageName}"
+          Value: !Sub "Transcriber-VPC-${StageName}"
 
   VPCFlowLog:
     Type: AWS::EC2::FlowLog
@@ -96,7 +96,7 @@ Resources:
       MapPublicIpOnLaunch: True
       Tags:
         - Key: Name
-          Value: "JKBX-Public-Subnet-A"
+          Value: "Transcriber-Public-Subnet-A"
 
   PublicSubnet1:
     Type: AWS::EC2::Subnet
@@ -111,7 +111,7 @@ Resources:
       MapPublicIpOnLaunch: True
       Tags:
         - Key: Name
-          Value: "JKBX-Public-Subnet-B"
+          Value: "Transcriber-Public-Subnet-B"
 
   PrivateSubnet0:
     Type: AWS::EC2::Subnet
@@ -125,7 +125,7 @@ Resources:
       CidrBlock: "10.0.2.0/24"
       Tags:
         - Key: Name
-          Value: "JKBX-Private-Subnet-A"
+          Value: "Transcriber-Private-Subnet-A"
 
   PrivateSubnet1:
     Type: AWS::EC2::Subnet
@@ -139,7 +139,7 @@ Resources:
       CidrBlock: "10.0.3.0/24"
       Tags:
         - Key: Name
-          Value: "JKBX-Private-Subnet-B"
+          Value: "Transcriber-Private-Subnet-B"
 
   InternetGateway:
     Type: AWS::EC2::InternetGateway
@@ -147,7 +147,7 @@ Resources:
     Properties:
       Tags:
         - Key: "Name"
-          Value: "JKBX-InternetGateway"
+          Value: "Transcriber-InternetGateway"
 
   GatewayToInternet:
     Type: AWS::EC2::VPCGatewayAttachment
@@ -163,7 +163,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: "Name"
-          Value: "JKBX-Public-Route-Table"
+          Value: "Transcriber-Public-Route-Table"
 
   PublicRoute:
     Type: AWS::EC2::Route
@@ -196,7 +196,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: "Name"
-          Value: "JKBX-Network-ACL"
+          Value: "Transcriber-Network-ACL"
 
   InboundHTTPPublicNetworkAclEntry:
     Type: AWS::EC2::NetworkAclEntry
@@ -247,7 +247,7 @@ Resources:
       Domain: vpc
       Tags:
       - Key: Name
-        Value: "JKBX-ElasticIP-1"
+        Value: "Transcriber-ElasticIP-1"
 
   ElasticIP1:
     Type: AWS::EC2::EIP
@@ -256,7 +256,7 @@ Resources:
       Domain: vpc
       Tags:
         - Key: Name
-          Value: "JKBX-ElasticIP-2"
+          Value: "Transcriber-ElasticIP-2"
 
   NATGateway0:
     Type: AWS::EC2::NatGateway
@@ -266,7 +266,7 @@ Resources:
       SubnetId: !Ref PublicSubnet0
       Tags:
         - Key: Name
-          Value: "JKBX-NatGateway-1"
+          Value: "Transcriber-NatGateway-1"
 
   NATGateway1:
     Type: AWS::EC2::NatGateway
@@ -276,7 +276,7 @@ Resources:
       SubnetId: !Ref PublicSubnet1
       Tags:
         - Key: Name
-          Value: "JKBX-NatGateway-2"
+          Value: "Transcriber-NatGateway-2"
 
   PrivateRouteTable0:
     Type: AWS::EC2::RouteTable
@@ -285,7 +285,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: "JKBX-PrivateRouteTable-1"
+          Value: "Transcriber-PrivateRouteTable-1"
 
   PrivateRouteTable1:
     Type: AWS::EC2::RouteTable
@@ -294,7 +294,7 @@ Resources:
       VpcId: !Ref VPC
       Tags:
         - Key: Name
-          Value: "JKBX-PrivateRouteTable-2"
+          Value: "Transcriber-PrivateRouteTable-2"
 
   PrivateRouteToInternet0:
     Type: AWS::EC2::Route
@@ -328,77 +328,47 @@ Resources:
 
 
 # RDS and Related Resources
-  RDSSecurityGroup:
-    Type: AWS::EC2::SecurityGroup
-    Properties:
-      GroupDescription: "RDS Security Group"
-      VpcId: !Ref VPC
-      SecurityGroupIngress:
-        - IpProtocol: Tcp
-          FromPort: 5432
-          ToPort: 5432
-          CidrIp: 10.0.0.0/0
+  # RDSSecurityGroup:
+  #   Type: AWS::EC2::SecurityGroup
+  #   Properties:
+  #     GroupDescription: "RDS Security Group"
+  #     VpcId: !Ref VPC
+  #     SecurityGroupIngress:
+  #       - IpProtocol: Tcp
+  #         FromPort: 5432
+  #         ToPort: 5432
+  #         CidrIp: 10.0.0.0/0
 
-  RDSSubnetGroup:
-    Type: AWS::RDS::DBSubnetGroup
-    Properties:
-      DBSubnetGroupDescription: "RDS Subnet group"
-      SubnetIds:
-        - !Ref PrivateSubnet0
-        - !Ref PrivateSubnet1
+  # RDSSubnetGroup:
+  #   Type: AWS::RDS::DBSubnetGroup
+  #   Properties:
+  #     DBSubnetGroupDescription: "RDS Subnet group"
+  #     SubnetIds:
+  #       - !Ref PrivateSubnet0
+  #       - !Ref PrivateSubnet1
 
-  DatabaseCluster:
-    Type: AWS::RDS::DBCluster
-    Properties:
-      DatabaseName: Tron
-      MasterUsername: postgres
-      MasterUserPassword: postgres
-      Engine: aurora-postgresql
-      Port: 5432
-      DBSubnetGroupName: !Ref RDSSubnetGroup
-      VpcSecurityGroupIds:
-        - !GetAtt RDSSecurityGroup.GroupId
+  # DatabaseCluster:
+  #   Type: AWS::RDS::DBCluster
+  #   Properties:
+  #     DatabaseName: Tron
+  #     MasterUsername: postgres
+  #     MasterUserPassword: postgres
+  #     Engine: aurora-postgresql
+  #     Port: 5432
+  #     DBSubnetGroupName: !Ref RDSSubnetGroup
+  #     VpcSecurityGroupIds:
+  #       - !GetAtt RDSSecurityGroup.GroupId
 
-  AuroraDBFirstInstance:
-    Type: AWS::RDS::DBInstance
-    Properties:
-      Engine: aurora-postgresql
-      DBClusterIdentifier: !Ref DatabaseCluster
-      DBInstanceClass: db.t4g.medium
-      DBSubnetGroupName: !Ref RDSSubnetGroup
-      PubliclyAccessible: False
+  # AuroraDBFirstInstance:
+  #   Type: AWS::RDS::DBInstance
+  #   Properties:
+  #     Engine: aurora-postgresql
+  #     DBClusterIdentifier: !Ref DatabaseCluster
+  #     DBInstanceClass: db.t4g.medium
+  #     DBSubnetGroupName: !Ref RDSSubnetGroup
+  #     PubliclyAccessible: False
     
-  # Dynamo UserManagement Table
-  UserManagementTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: "UserManagement"
-      TableClass: STANDARD
-      DeletionProtectionEnabled: True
-      AttributeDefinitions:
-        - 
-          AttributeName: "user_id"
-          AttributeType: S
-        -
-          AttributeName: "email"
-          AttributeType: S
-      KeySchema:
-        - 
-          AttributeName: "user_id"
-          KeyType: "HASH"
-
-      GlobalSecondaryIndexes:
-        - IndexName: "email-index"
-          KeySchema: 
-            - AttributeName: "email" 
-              KeyType: "HASH"
-          Projection:
-            ProjectionType: ALL
-          # ProvisionedThroughput: 
-          #   ReadCapacityUnits: 5
-          #   WriteCapacityUnits: 5
-      BillingMode: PAY_PER_REQUEST
-    
+  # Dynamo UserMetadataTable Table
   UserMetadataTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -407,205 +377,19 @@ Resources:
       DeletionProtectionEnabled: True
       AttributeDefinitions:
         -
-          AttributeName: "email"
+          AttributeName: "user_id"
           AttributeType: S
       KeySchema:
         - 
-          AttributeName: "email"
+          AttributeName: "user_id"
           KeyType: "HASH"
       BillingMode: PAY_PER_REQUEST
 
-  # Dynamo Order Table
-  OrderTable:
+  # Dynamo Documents Table
+  DocumentTable:
     Type: AWS::DynamoDB::Table
     Properties:
-      TableName: "OrdersTable"
-      TableClass: STANDARD
-      DeletionProtectionEnabled: True
-      AttributeDefinitions:
-        -
-          AttributeName: "email"
-          AttributeType: S
-        -
-          AttributeName: "order_id"
-          AttributeType: S
-        -
-          AttributeName: "created_datetime"
-          AttributeType: S
-      KeySchema:
-        -
-          AttributeName: "email"
-          KeyType: "HASH"
-        -
-          AttributeName: "order_id"
-          KeyType: "RANGE"
-      
-      GlobalSecondaryIndexes:
-        - IndexName: "created-datetime-index"
-          KeySchema:
-            - AttributeName: "email" 
-              KeyType: "HASH"
-            - AttributeName: "created_datetime" 
-              KeyType: "RANGE"
-          Projection:
-            ProjectionType: ALL
-            
-      BillingMode: PAY_PER_REQUEST
-  
-  # Dynamo Track metadata table
-  TrackMetadataTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: "TrackMetadataTable"
-      TableClass: STANDARD
-      DeletionProtectionEnabled: True
-      AttributeDefinitions:
-        -
-          AttributeName: "song_id"
-          AttributeType: S
-      KeySchema:
-        -
-          AttributeName: "song_id"
-          KeyType: "HASH"
-      BillingMode: PAY_PER_REQUEST
-  
-  # Dynamo Atrists metadata table
-  ArtistMetadataTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: "ArtistMetadataTable"
-      TableClass: STANDARD
-      DeletionProtectionEnabled: True
-      AttributeDefinitions:
-        -
-          AttributeName: "artist_id"
-          AttributeType: S
-      KeySchema:
-        -
-          AttributeName: "artist_id"
-          KeyType: "HASH"
-      BillingMode: PAY_PER_REQUEST
-
-  UserWatchlistTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: "UserWatchlistTable"
-      TableClass: STANDARD
-      DeletionProtectionEnabled: True
-      AttributeDefinitions:
-        -
-          AttributeName: "email"
-          AttributeType: S
-        -
-          AttributeName: "asset_id"
-          AttributeType: S
-      KeySchema:
-        -
-          AttributeName: "email"
-          KeyType: "HASH"
-        -
-          AttributeName: "asset_id"
-          KeyType: "RANGE"
-      BillingMode: PAY_PER_REQUEST
-  
-  AssetTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: "AssetTable"
-      TableClass: STANDARD
-      DeletionProtectionEnabled: True
-      AttributeDefinitions:
-        -
-          AttributeName: "song_id"
-          AttributeType: S
-        -
-          AttributeName: "asset_id"
-          AttributeType: S
-        -
-          AttributeName: "market_cap"
-          AttributeType: N
-        -
-          AttributeName: "streaming_count"
-          AttributeType: N
-        -
-          AttributeName: "spv_name"
-          AttributeType: S
-        -
-          AttributeName: "brassica_security_id"
-          AttributeType: S
-      KeySchema:
-        -
-          AttributeName: "song_id"
-          KeyType: "HASH"
-        -
-          AttributeName: "asset_id"
-          KeyType: "RANGE"
-
-      GlobalSecondaryIndexes:
-        - IndexName: "market-cap-index"
-          KeySchema:
-            - AttributeName: "spv_name"
-              KeyType: "HASH"
-            - AttributeName: "market_cap"
-              KeyType: "RANGE"
-          Projection:
-            ProjectionType: ALL
-        - IndexName: "streaming-count-index"
-          KeySchema:
-            - AttributeName: "spv_name"
-              KeyType: "HASH"
-            - AttributeName: "streaming_count"
-              KeyType: "RANGE"
-          Projection:
-            ProjectionType: ALL
-        - IndexName: "asset-id-index"
-          KeySchema:
-            - AttributeName: "asset_id"
-              KeyType: "HASH"
-          Projection:
-            ProjectionType: ALL
-        - IndexName: "brassica-security-id-index"
-          KeySchema:
-            - AttributeName: "brassica_security_id"
-              KeyType: "HASH"
-          Projection:
-            ProjectionType: ALL
-
-      BillingMode: PAY_PER_REQUEST
-
-  PortfolioTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: "PortfolioTable"
-      TableClass: STANDARD
-      DeletionProtectionEnabled: True
-      AttributeDefinitions:
-        -
-          AttributeName: "email"
-          AttributeType: S
-        -
-          AttributeName: "asset_id"
-          AttributeType: S
-      KeySchema:
-        -
-          AttributeName: "email"
-          KeyType: "HASH"
-        -
-          AttributeName: "asset_id"
-          KeyType: "RANGE"
-      GlobalSecondaryIndexes:
-        - IndexName: "asset-id-index"
-          KeySchema:
-            - AttributeName: "asset_id"
-              KeyType: "HASH"
-          Projection:
-            ProjectionType: ALL
-      BillingMode: PAY_PER_REQUEST
-
-  TransfersTable:
-    Type: AWS::DynamoDB::Table
-    Properties:
-      TableName: "TransfersTable"
+      TableName: "Document"
       TableClass: STANDARD
       DeletionProtectionEnabled: True
       AttributeDefinitions:
@@ -613,35 +397,15 @@ Resources:
           AttributeName: "user_id"
           AttributeType: S
         -
-          AttributeName: "transfer_id"
-          AttributeType: S
-        -
-          AttributeName: "created_datetime"
+          AttributeName: "document_id"
           AttributeType: S
       KeySchema:
-        -
+        - 
           AttributeName: "user_id"
           KeyType: "HASH"
-        -
-          AttributeName: "transfer_id"
+        - 
+          AttributeName: "document_id"
           KeyType: "RANGE"
-      
-      GlobalSecondaryIndexes:
-        - IndexName: "created-datetime-index"
-          KeySchema:
-            - AttributeName: "user_id"
-              KeyType: "HASH"
-            - AttributeName: "created_datetime"
-              KeyType: "RANGE"
-          Projection:
-            ProjectionType: ALL
-        - IndexName: "transfer-id-index"
-          KeySchema:
-            - AttributeName: "transfer_id"
-              KeyType: "HASH"
-          Projection:
-            ProjectionType: ALL
-
       BillingMode: PAY_PER_REQUEST
 
   # IAM Role for DynamoDB
@@ -673,20 +437,7 @@ Resources:
                   - "dynamodb:DescribeTable"
                   - "dynamodb:Query"
                 Resource: !GetAtt UserMetadataTable.Arn
-        - PolicyName: UserManagementTablePolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "dynamodb:GetItem"
-                  - "dynamodb:DescribeTable"
-                  - "dynamodb:Query"
-                  - "dynamodb:PutItem"
-                Resource:
-                  - !GetAtt UserManagementTable.Arn
-                  - !Join [ "/index/", [ !GetAtt UserManagementTable.Arn, "email-index"]]
-        - PolicyName: OrdersTablePolicy
+        - PolicyName: DocumentsTablePolicy
           PolicyDocument:
             Version: "2012-10-17"
             Statement:
@@ -699,112 +450,7 @@ Resources:
                   - "dynamodb:DeleteItem"
                   - "dynamodb:DescribeTable"
                   - "dynamodb:Query"
-                  - "dynamodb:Scan"
-                Resource:
-                  - !GetAtt OrderTable.Arn
-                  - !Join [ "/index/", [ !GetAtt OrderTable.Arn, "created-datetime-index"]]
-        - PolicyName: TrackMetadataTablePolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "dynamodb:BatchGetItem"
-                  - "dynamodb:GetItem"
-                  - "dynamodb:PutItem"
-                  - "dynamodb:UpdateItem"
-                  - "dynamodb:DeleteItem"
-                  - "dynamodb:DescribeTable"
-                  - "dynamodb:Query"
-                  - "dynamodb:Scan"
-                Resource:
-                  - !GetAtt TrackMetadataTable.Arn
-        - PolicyName: ArtistMetadataTablePolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "dynamodb:BatchGetItem"
-                  - "dynamodb:GetItem"
-                  - "dynamodb:PutItem"
-                  - "dynamodb:UpdateItem"
-                  - "dynamodb:DeleteItem"
-                  - "dynamodb:DescribeTable"
-                  - "dynamodb:Query"
-                  - "dynamodb:Scan"
-                Resource:
-                  - !GetAtt ArtistMetadataTable.Arn
-        - PolicyName: UserWatchlistTablePolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "dynamodb:BatchGetItem"
-                  - "dynamodb:GetItem"
-                  - "dynamodb:PutItem"
-                  - "dynamodb:UpdateItem"
-                  - "dynamodb:DeleteItem"
-                  - "dynamodb:DescribeTable"
-                  - "dynamodb:Query"
-                  - "dynamodb:Scan"
-                Resource:
-                  - !GetAtt UserWatchlistTable.Arn
-        - PolicyName: AssetTablePolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "dynamodb:BatchGetItem"
-                  - "dynamodb:GetItem"
-                  - "dynamodb:PutItem"
-                  - "dynamodb:UpdateItem"
-                  - "dynamodb:DeleteItem"
-                  - "dynamodb:DescribeTable"
-                  - "dynamodb:Query"
-                  - "dynamodb:Scan"
-                Resource:
-                  - !GetAtt AssetTable.Arn
-                  - !Join [ "/index/", [ !GetAtt AssetTable.Arn, "market-cap-index"]]
-                  - !Join [ "/index/", [ !GetAtt AssetTable.Arn, "streaming-count-index"]]
-                  - !Join [ "/index/", [ !GetAtt AssetTable.Arn, "asset-id-index"]]
-        - PolicyName: PortfolioTablePolicy
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "dynamodb:BatchGetItem"
-                  - "dynamodb:GetItem"
-                  - "dynamodb:PutItem"
-                  - "dynamodb:UpdateItem"
-                  - "dynamodb:DeleteItem"
-                  - "dynamodb:DescribeTable"
-                  - "dynamodb:Query"
-                  - "dynamodb:Scan"
-                Resource:
-                  - !GetAtt PortfolioTable.Arn
-                  - !Join [ "/index/", [ !GetAtt PortfolioTable.Arn, "asset-id-index"]]
-        - PolicyName: TransfersTable
-          PolicyDocument:
-            Version: "2012-10-17"
-            Statement:
-              - Effect: Allow
-                Action:
-                  - "dynamodb:BatchGetItem"
-                  - "dynamodb:GetItem"
-                  - "dynamodb:PutItem"
-                  - "dynamodb:UpdateItem"
-                  - "dynamodb:DeleteItem"
-                  - "dynamodb:DescribeTable"
-                  - "dynamodb:Query"
-                  - "dynamodb:Scan"
-                Resource:
-                  - !GetAtt TransfersTable.Arn
-                  - !Join [ "/index/", [ !GetAtt TransfersTable.Arn, "created-datetime-index"]]
-                  - !Join [ "/index/", [ !GetAtt TransfersTable.Arn, "transfer-id-index"]]
+                Resource: !GetAtt DocumentTable.Arn
         - PolicyName: LambdaExecutionPolicy
           PolicyDocument:
             Version: "2012-10-17"
@@ -822,7 +468,7 @@ Resources:
                   - "sns:Publish"
                   - "lambda:InvokeFunction"
                   - "states:StartExecution"
-                  - "s3:PutObject"
+                  - "s3:*"
                 Resource: "*"
         - PolicyName: KmsPolicy
           PolicyDocument:
@@ -831,117 +477,110 @@ Resources:
               - Effect: Allow
                 Action:
                   - "kms:*"
+                  - "secretsmanager:*"
                 Resource: "*"
 
-  # Caching layer
-  ElasticacheSubnetGroup:
-    Type: AWS::ElastiCache::SubnetGroup
-    Properties:
-      Description: "Elasticache Subnet Group"
-      SubnetIds:
-        - !Ref PrivateSubnet0
-        - !Ref PrivateSubnet1
-  ElasticacheSecurityGroup:
-    Type: 'AWS::EC2::SecurityGroup'
-    Properties:
-      GroupDescription: Elasticache Security Group
-      VpcId: !Ref VPC
-      SecurityGroupIngress:
-        - IpProtocol: tcp
-          FromPort: 6379
-          ToPort: 6379
-          CidrIp: 10.0.0.0/0
-  ElasticacheCluster:
-    Type: 'AWS::ElastiCache::CacheCluster'
-    Properties:    
-      Engine: redis
-      CacheNodeType: cache.t2.micro
-      CacheSubnetGroupName: !Ref ElasticacheSubnetGroup
-      NumCacheNodes: 1
-      Port: 6379
-      VpcSecurityGroupIds:
-        - !GetAtt 
-          - ElasticacheSecurityGroup
-          - GroupId
-
-  # IAM user for programmatic access to DynamoDB
-  # Auth0IAMUser:
-  #   Type: AWS::IAM::User
-  
-  # Auth0IAMAccessKey:
-  #   Type: AWS::IAM::AccessKey
+  # Queue
+  # DeadLetterQueue:
+  #   Type: AWS::SQS::Queue
   #   Properties:
-  #     UserName: !Ref Auth0IAMUser
-  # IAM access key and secret access key will initially be manual , later refactored through this template
+  #     QueueName: !Sub ${StageName}-DeadLetterQueue
 
+  # OrderQueue:
+  #   Type: AWS::SQS::Queue
+  #   Properties:
+  #     QueueName: !Sub ${StageName}-OrderQueue
+  #     ContentBasedDeduplication: true
+  #     DeduplicationScope: messageGroup
+  #     VisibilityTimeout: 35
+  #     RedrivePolicy:
+  #       deadLetterTargetArn: !GetAtt DeadLetterQueue.Arn
+  #       maxReceiveCount: 5
+
+  # Caching layer
+  # ElasticacheSubnetGroup:
+  #   Type: AWS::ElastiCache::SubnetGroup
+  #   Properties:
+  #     Description: "Elasticache Subnet Group"
+  #     SubnetIds:
+  #       - !Ref PrivateSubnet0
+  #       - !Ref PrivateSubnet1
+  # ElasticacheSecurityGroup:
+  #   Type: 'AWS::EC2::SecurityGroup'
+  #   Properties:
+  #     GroupDescription: Elasticache Security Group
+  #     VpcId: !Ref VPC
+  #     SecurityGroupIngress:
+  #       - IpProtocol: tcp
+  #         FromPort: 6379
+  #         ToPort: 6379
+  #         CidrIp: 10.0.0.0/0
+  # ElasticacheCluster:
+  #   Type: 'AWS::ElastiCache::CacheCluster'
+  #   Properties:    
+  #     Engine: redis
+  #     CacheNodeType: cache.t2.micro
+  #     CacheSubnetGroupName: !Ref ElasticacheSubnetGroup
+  #     NumCacheNodes: 1
+  #     Port: 6379
+  #     VpcSecurityGroupIds:
+  #       - !GetAtt 
+  #         - ElasticacheSecurityGroup
+  #         - GroupId
 
 # WAF/Web ACL
-  StudioWAF:
-    Type: AWS::WAFv2::WebACL
-    Properties:
-      DefaultAction:
-        Allow: {}
-      Name: !Sub "${StageName}-Studio-WAF"
-      Scope: REGIONAL
-      VisibilityConfig:
-        CloudWatchMetricsEnabled: true
-        MetricName: "studio"
-        SampledRequestsEnabled: true
-      Rules:
-        - Name: AWSCommonManagedRules
-          Priority: 0
-          OverrideAction:
-            Count: {}
-          VisibilityConfig:
-            CloudWatchMetricsEnabled: true
-            MetricName: CommonAWSRulesMetric
-            SampledRequestsEnabled: true
-          Statement:
-            ManagedRuleGroupStatement:
-              Name: AWSManagedRulesCommonRuleSet
-              VendorName: AWS
-              ExcludedRules: []
+  # StudioWAF:
+  #   Type: AWS::WAFv2::WebACL
+  #   Properties:
+  #     DefaultAction:
+  #       Allow: {}
+  #     Name: !Sub "${StageName}-Studio-WAF"
+  #     Scope: REGIONAL
+  #     VisibilityConfig:
+  #       CloudWatchMetricsEnabled: true
+  #       MetricName: "studio"
+  #       SampledRequestsEnabled: true
+  #     Rules:
+  #       - Name: AWSCommonManagedRules
+  #         Priority: 0
+  #         OverrideAction:
+  #           Count: {}
+  #         VisibilityConfig:
+  #           CloudWatchMetricsEnabled: true
+  #           MetricName: CommonAWSRulesMetric
+  #           SampledRequestsEnabled: true
+  #         Statement:
+  #           ManagedRuleGroupStatement:
+  #             Name: AWSManagedRulesCommonRuleSet
+  #             VendorName: AWS
+  #             ExcludedRules: []
 
 # Route53 hosted zone
-
-  ApiHostedZone:
-    Type: "AWS::Route53::HostedZone"
-    Properties:
-      HostedZoneConfig:
-        Comment: 'Hosted Zone'
-      Name: !Sub "${StageName}-api.jkbx.com"
-      # VPCs:
-      #   -
-      #     VPCId: !Ref VPC
-      #     VPCRegion: 'us-west-2'
-      
-  RiderApiHostedZone:
-    Type: "AWS::Route53::HostedZone"
-    Properties:
-      HostedZoneConfig:
-        Comment: 'Hosted Zone'
-      Name: !Sub "${StageName}-rider.jkbx.com"
-
-# # DNS Entry
-  # ApiDnsRecord:
-  #   Type: AWS::Route53::RecordSet
+  # ApiHostedZone:
+  #   Type: "AWS::Route53::HostedZone"
   #   Properties:
-  #     HostedZoneId: !Ref ApiHostedZone
-  #     Name: !Sub "${StageName}-api.jkbx.com"
-  #     ResourceRecords:
-  #     - 192.168.0.1
-  #     TTL: 900
-  #     Type: A
+  #     HostedZoneConfig:
+  #       Comment: 'Hosted Zone'
+  #     Name: !Sub "${StageName}-api.transcriber.com"
+
+# RiderEmailIdentifier:
+#   Type: AWS::SES::EmailIdentity
+#   Properties:
+#     ConfigurationSetAttributes: 
+#       ConfigurationSetAttributes
+#     DkimAttributes: 
+#       DkimAttributes
+#     DkimSigningAttributes: 
+#       DkimSigningAttributes
+#     EmailIdentity: "${StageName}-info.Transcriber.com"
+#     FeedbackAttributes: 
+#       FeedbackAttributes
+#     MailFromAttributes: 
+#       MailFromAttributes
 
 # cert
-  ApiCertificate: 
-    Type: "AWS::CertificateManager::Certificate"
-    Properties: 
-      DomainName: !Sub "${StageName}-api.jkbx.com"
-      ValidationMethod: DNS
-  
-  RiderApiCertificate: 
-    Type: "AWS::CertificateManager::Certificate"
-    Properties: 
-      DomainName: !Sub "${StageName}-rider.jkbx.com"
-      ValidationMethod: DNS
+  # ApiCertificate: 
+  #   Type: "AWS::CertificateManager::Certificate"
+  #   Properties: 
+  #     DomainName: !Sub "${StageName}-api.transcriber.com"
+  #     ValidationMethod: DNS
