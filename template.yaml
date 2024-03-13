@@ -368,7 +368,7 @@ Resources:
   #     DBSubnetGroupName: !Ref RDSSubnetGroup
   #     PubliclyAccessible: False
     
-  # Dynamo UserMetadataTable Table
+  # Dynamo Tables
   UserMetadataTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -385,7 +385,6 @@ Resources:
           KeyType: "HASH"
       BillingMode: PAY_PER_REQUEST
 
-  # Dynamo Documents Table
   DocumentTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -408,7 +407,6 @@ Resources:
           KeyType: "RANGE"
       BillingMode: PAY_PER_REQUEST
   
-  # Dynamo Tickets Table
   TicketTable:
     Type: AWS::DynamoDB::Table
     Properties:
@@ -428,6 +426,29 @@ Resources:
           KeyType: "HASH"
         - 
           AttributeName: "created_datetime"
+          KeyType: "RANGE"
+
+      BillingMode: PAY_PER_REQUEST
+  
+  SubTicketTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: "SubTicket"
+      TableClass: STANDARD
+      DeletionProtectionEnabled: True
+      AttributeDefinitions:
+        -
+          AttributeName: "sub_ticket_id"
+          AttributeType: S
+        -
+          AttributeName: "user_id"
+          AttributeType: S
+      KeySchema:
+        - 
+          AttributeName: "user_id"
+          KeyType: "HASH"
+        - 
+          AttributeName: "sub_ticket_id"
           KeyType: "RANGE"
 
       BillingMode: PAY_PER_REQUEST
@@ -489,6 +510,20 @@ Resources:
                   - "dynamodb:DescribeTable"
                   - "dynamodb:Query"
                 Resource: !GetAtt TicketTable.Arn
+        - PolicyName: SubTicketTablePolicy
+          PolicyDocument:
+            Version: "2012-10-17"
+            Statement:
+              - Effect: Allow
+                Action:
+                  - "dynamodb:BatchGetItem"
+                  - "dynamodb:GetItem"
+                  - "dynamodb:PutItem"
+                  - "dynamodb:UpdateItem"
+                  - "dynamodb:DeleteItem"
+                  - "dynamodb:DescribeTable"
+                  - "dynamodb:Query"
+                Resource: !GetAtt SubTicketTable.Arn
         - PolicyName: LambdaExecutionPolicy
           PolicyDocument:
             Version: "2012-10-17"
