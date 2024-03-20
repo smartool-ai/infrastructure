@@ -463,10 +463,16 @@ Resources:
         -
           AttributeName: "transaction_id"
           AttributeType: S
+        -
+          AttributeName: "user_id"
+          AttributeType: S
       KeySchema:
         - 
-          AttributeName: "transaction_id"
+          AttributeName: "user_id"
           KeyType: "HASH"
+        - 
+          AttributeName: "transaction_id"
+          KeyType: "RANGE"
 
       BillingMode: PAY_PER_REQUEST
 
