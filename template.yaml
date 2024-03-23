@@ -666,31 +666,35 @@ Resources:
   #             ExcludedRules: []
 
 # Route53 hosted zone
-  # ApiHostedZone:
+  ApiHostedZone:
+    Type: "AWS::CertificateManager::Certificate"
+    Properties: 
+      DomainName: !Sub "${StageName}-api.smartool.ai"
+      ValidationMethod: DNS
+
+  Hosted:
+    Type: "AWS::Route53::HostedZone"
+    Properties:
+      HostedZoneConfig:
+        Comment: 'Hosted Zone'
+      Name: !Sub "${StageName}-api.smartool.ai"
+  
+  # DevUICertificate:
+  #   Type: "AWS::CertificateManager::Certificate"
+  #   Properties: 
+  #     DomainName: !Sub "${StageName}-app.smartool.ai"
+  #     ValidationMethod: DNS
+
+  # DevUiHosted:
   #   Type: "AWS::Route53::HostedZone"
   #   Properties:
   #     HostedZoneConfig:
   #       Comment: 'Hosted Zone'
-  #     Name: !Sub "${StageName}-api.transcriber.com"
-
-# RiderEmailIdentifier:
-#   Type: AWS::SES::EmailIdentity
-#   Properties:
-#     ConfigurationSetAttributes: 
-#       ConfigurationSetAttributes
-#     DkimAttributes: 
-#       DkimAttributes
-#     DkimSigningAttributes: 
-#       DkimSigningAttributes
-#     EmailIdentity: "${StageName}-info.Transcriber.com"
-#     FeedbackAttributes: 
-#       FeedbackAttributes
-#     MailFromAttributes: 
-#       MailFromAttributes
+  #     Name: !Sub "${StageName}-app.smartool.ai"
 
 # cert
   # ApiCertificate: 
   #   Type: "AWS::CertificateManager::Certificate"
   #   Properties: 
-  #     DomainName: !Sub "${StageName}-api.transcriber.com"
+  #     DomainName: !Sub "${StageName}-api.smartool.ai"
   #     ValidationMethod: DNS
