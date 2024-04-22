@@ -268,15 +268,15 @@ Resources:
         - Key: Name
           Value: "Transcriber-NatGateway-1"
 
-  NATGateway1:
-    Type: AWS::EC2::NatGateway
-    DeletionPolicy: Retain
-    Properties:
-      AllocationId: !GetAtt ElasticIP1.AllocationId
-      SubnetId: !Ref PublicSubnet1
-      Tags:
-        - Key: Name
-          Value: "Transcriber-NatGateway-2"
+  #  NATGateway1:
+  #    Type: AWS::EC2::NatGateway
+  #    DeletionPolicy: Retain
+  #    Properties:
+  #      AllocationId: !GetAtt ElasticIP1.AllocationId
+  #      SubnetId: !Ref PublicSubnet1
+  #      Tags:
+  #        - Key: Name
+  #          Value: "Transcriber-NatGateway-2"
 
   PrivateRouteTable0:
     Type: AWS::EC2::RouteTable
@@ -310,7 +310,7 @@ Resources:
     Properties:
       RouteTableId: !Ref PrivateRouteTable1
       DestinationCidrBlock: "0.0.0.0/0"
-      NatGatewayId: !Ref NATGateway1
+      NatGatewayId: !Ref NATGateway0
 
   PrivateSubnetRouteTableAssociation0:
     Type: "AWS::EC2::SubnetRouteTableAssociation"
